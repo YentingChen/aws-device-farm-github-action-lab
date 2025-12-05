@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "wdio-local": "wdio run ./test/config/wdio.local.conf.js"
+    "wdio-local": "wdio run ./test/config/wdio.local.conf.js",
+    "wdio-device-farm": "wdio run ./test/config/wdio.devicefarm.conf.js"
   },
   "author": "aws-devicefarm-support@amazon.com",
   "license": "ISC",
