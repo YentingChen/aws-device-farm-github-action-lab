@@ -1,0 +1,74 @@
+name: AWS Device Farm Automated Test for Mobile App
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::970029554966:role/DeviceFarm-GitHubActionRole
+          aws-region: us-west-2
+
+      - name: Schedule Device Farm Automated Test
+        id: RunTest
+        uses: aws-actions/aws-devicefarm-mobile-device-testing@v2.0
+        with:
+          run-settings-json: |
+            {
+              "name": "GitHubAction-${{ github.workflow }}_${{ github.run_id }}_${{ github.run_attempt }}",
+              "projectArn": "Device Farm Workshop",
+              "appArn": "AWSDeviceFarmAndroidReferenceApp.apk",
+              "devicePoolArn": "Top Devices",
+              "test": {
+                "type": "APPIUM_NODE",
+                "testPackageArn": "MySampleAndroidTests.zip",
+                "testSpecArn": "webdriverio_spec_file.yml"
+              },
+              "configuration": {
+                "locale": "en_US",
+                "location": {
+                  "latitude": 47.6204,
+                  "longitude": -122.3491
+                },
+                "customerArtifactPaths": {
+                  "deviceHostPaths": [
+                    "$WORKING_DIRECTORY"
+                  ]
+                },
+                "radios": {
+                  "wifi": true,
+                  "bluetooth": false,
+                  "nfc": true,
+                  "gps": true
+                },
+                "billingMethod": "METERED"
+              },
+              "executionConfiguration": {
+                "jobTimeoutMinutes": 150,
+                "accountsCleanup": true,
+                "appPackagesCleanup": true,
+                "videoCapture": true,
+                "skipAppResign": false
+              }
+            }
+          artifact-types: ALL
+          upload-poll-interval: 1000
+          run-poll-interval: 30000
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: AutomatedTestOutputFiles
+          path: ${{ steps.RunTest.outputs.artifact-folder }}
